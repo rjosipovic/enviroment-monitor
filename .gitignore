@@ -1,0 +1,8 @@
+# Java kompajlirane klase:
+*.class
+bin/*
+
+#Eclipse project files:
+.settings
+.classpath
+.project
