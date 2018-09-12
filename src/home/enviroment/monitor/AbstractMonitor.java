@@ -37,7 +37,7 @@ public abstract class AbstractMonitor implements Callable<Properties> {
 	
 	@Override
 	public Properties call() {
-		Properties diskUsages = null;
+		Properties props = null;
 		LOG.info(String.format("Executing command %s", commands));
 		
 		try {
@@ -48,7 +48,7 @@ public abstract class AbstractMonitor implements Callable<Properties> {
 			
 			if(responseCode == 0) {
 				LOG.info(String.format("Command %s executed successfully", commands));
-				return getProperties(getResponseLines(outputReader));
+				props = getProperties(getResponseLines(outputReader));
 			} else {
 				LOG.severe(String.format("Error [%d] in executing commands %s, error message: [%s]", responseCode, commands, getResponseLines(errorReader)));
 			}
@@ -57,6 +57,6 @@ public abstract class AbstractMonitor implements Callable<Properties> {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		return diskUsages;
+		return props;
 	}
 }
