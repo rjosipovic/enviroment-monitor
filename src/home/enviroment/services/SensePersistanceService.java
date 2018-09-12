@@ -55,7 +55,7 @@ public class SensePersistanceService extends AbstractScheduledService {
 	private void persistMesurements() {
 		SenseMesurement[] mesurements = new SenseMesurement[maxPersistedElements];
 		for(int i=0; i<maxPersistedElements; i++) {
-			while(queue.peek() != null) {
+			if(queue.peek() != null) {
 				mesurements[i] = queue.poll();
 			}
 		}

@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -81,7 +82,7 @@ public class RetrieveSenseMesurementJob implements Runnable {
 				pressure = Float.parseFloat(pressureMatcher.group(2));
 			}
 		}
-		return new SenseMesurement(humidity, temperature, pressure);
+		return new SenseMesurement(new Date(), humidity, temperature, pressure);
 	}
 
 	private List<String> readLines(InputStream in) throws IOException {

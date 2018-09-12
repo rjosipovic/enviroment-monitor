@@ -1,9 +1,11 @@
 package home.enviroment.job;
 
-import java.io.BufferedOutputStream;
-import java.io.FileOutputStream;
+import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.logging.Level;
@@ -31,13 +33,17 @@ public class PersistSenseMesurementJob implements Runnable {
 	
 	@Override
 	public void run() {
-		LOG.log(Level.FINE, "About to persist mesurements");
-		try(ObjectOutputStream out =  new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(getFileName())))) {
-			out.writeObject(mesurements);
-			out.flush();
-			out.close();
+		LOG.log(Level.INFO, String.format("About to persist [%d] mesurements", mesurements.length));
+		
+		Path file = Paths.get(getFileName());
+		try(BufferedWriter writer = Files.newBufferedWriter(file, Charset.forName("UTF-8"))) {
+			for(int i=0; i<mesurements.length; i++) {
+				writer.write(mesurements[i].toString());
+				writer.write("\n");
+			}
+			writer.flush();
 		}catch(IOException ex) {
 			LOG.log(Level.SEVERE, "Unable to persist mesurements to a file.", ex);
-		}		
+		}
 	}
 }
