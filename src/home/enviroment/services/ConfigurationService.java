@@ -14,7 +14,7 @@ public class ConfigurationService extends AbstractIdleService {
 	private static final String HUMIDITY_PATTERN = "^(humidity:)([-+]?([0-9]*\\.[0-9]+|[0-9]+))$";
 	private static final String PRESSURE_PATTERN = "^(pressure:)([-+]?([0-9]*\\.[0-9]+|[0-9]+))$";
 	private static final String SENSE_PERSIST_FOLDER = "/tmp/";
-	private static final int MAX_PERSISTED_ELEMENTS = 1200;
+	private static final int MAX_PERSISTED_ELEMENTS = 12;
 	//SenseJob
 	
 	private static ConfigurationService instance = null;

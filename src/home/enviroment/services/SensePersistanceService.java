@@ -3,6 +3,8 @@ package home.enviroment.services;
 import home.enviroment.job.PersistSenseMesurementJob;
 import home.enviroment.sense.SenseMesurement;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -28,12 +30,10 @@ public class SensePersistanceService extends AbstractScheduledService {
 	private LinkedBlockingQueue<SenseMesurement> queue;
 	private ExecutorService exec;
 	private ConfigurationService configService = ConfigurationService.getInstance();
-	private int maxPersistedElements;
 	
 	public SensePersistanceService() {
 		queue = new LinkedBlockingQueue<>();
 		exec = Executors.newSingleThreadExecutor();
-		maxPersistedElements = configService.getMaxPersistedElements();
 	}
 
 	@Override
@@ -45,19 +45,17 @@ public class SensePersistanceService extends AbstractScheduledService {
 	@Override
 	protected void runOneIteration() throws Exception {
 		LOG.log(Level.INFO, "About to perist mesurements");
-		if(queue.size() < maxPersistedElements) {
-			LOG.log(Level.INFO, "There is not enough mesurements to persist");
+		if(queue.size() == 0) {
+			LOG.log(Level.INFO, "There are no mesurements to persist");
 		} else {
 			persistMesurements();			
 		}		
 	}
 	
 	private void persistMesurements() {
-		SenseMesurement[] mesurements = new SenseMesurement[maxPersistedElements];
-		for(int i=0; i<maxPersistedElements; i++) {
-			if(queue.peek() != null) {
-				mesurements[i] = queue.poll();
-			}
+		List<SenseMesurement> mesurements = new ArrayList<>();
+		while(queue.peek() != null) {
+			mesurements.add(queue.poll());
 		}
 		exec.execute(new PersistSenseMesurementJob(mesurements, configService.getSensePersistFolder()));
 	}

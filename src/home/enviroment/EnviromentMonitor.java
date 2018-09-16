@@ -29,6 +29,7 @@ import com.google.common.util.concurrent.ServiceManager;
 import home.enviroment.services.ConfigurationService;
 import home.enviroment.services.MonitorService;
 import home.enviroment.services.SenseMesurementService;
+import home.enviroment.services.SenseMesurementTransferService;
 import home.enviroment.services.SensePersistanceService;
 
 public class EnviromentMonitor implements EnviromentMonitorMBean {
@@ -54,6 +55,7 @@ public class EnviromentMonitor implements EnviromentMonitorMBean {
 		services.add(MonitorService.getInstance());
 		services.add(SensePersistanceService.getInstance());
 		services.add(SenseMesurementService.getInstance());
+		services.add(SenseMesurementTransferService.getInstance());
 		serviceManager = new ServiceManager(services);
 	}
 	

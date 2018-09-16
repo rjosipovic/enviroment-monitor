@@ -35,7 +35,7 @@ public class SenseMesurementService extends AbstractScheduledService {
 	
 	@Override
 	protected void runOneIteration() throws Exception {
-		LOG.info("Executing SenseEnviroment iteration");
+		LOG.fine("Executing SenseEnviroment iteration");
 		RetrieveSenseMesurementJob senseJob = new RetrieveSenseMesurementJob(confService.getSenseHatScriptPath(), 
 				confService.getTempPattern(),
 				confService.getHumidityPattern(),

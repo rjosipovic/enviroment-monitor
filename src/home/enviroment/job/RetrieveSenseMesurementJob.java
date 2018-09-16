@@ -43,11 +43,11 @@ public class RetrieveSenseMesurementJob implements Runnable {
 		Process p = null;
 		try {
 
-			LOG.log(Level.INFO, String.format("About to execute command: %s", Arrays.toString(commands)));
+			LOG.log(Level.FINE, String.format("About to execute command: %s", Arrays.toString(commands)));
 			p = pb.start();
 			int responseCode = p.waitFor();
 			if(responseCode == 0) {
-				LOG.log(Level.INFO, "Command executed successfully");
+				LOG.log(Level.FINE, "Command executed successfully");
 				SenseMesurement mesurement = getSenseMesurement(p.getInputStream());
 				persistenceService.addMesurement(mesurement);
 			} else {
