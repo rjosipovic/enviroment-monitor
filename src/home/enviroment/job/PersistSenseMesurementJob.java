@@ -21,7 +21,7 @@ public class PersistSenseMesurementJob implements Runnable {
 	
 	private List<SenseMesurement> mesurements;
 	private String storageFolder;
-	private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-hhmm");
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmm");
 	private SenseMesurementTransferService transferService = null;
 	
 	public PersistSenseMesurementJob(List<SenseMesurement> mesurements, String folder) {

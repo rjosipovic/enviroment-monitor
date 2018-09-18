@@ -66,6 +66,7 @@ public class SenseMesurementTransferService extends AbstractScheduledService {
 	@Override
 	protected void shutDown() throws Exception {
 		LOG.info("Stopping SenseMesurementTransferService");
+		//TODO not working as expected
 		if(!files.isEmpty()) {
 			LOG.info(String.format("There are stil: [%d] files to transfer", files.size()));
 			LOG.info(String.format("Transfering: %d files before shutdown", files.size()));
