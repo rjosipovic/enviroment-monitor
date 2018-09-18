@@ -3,9 +3,7 @@ package home.enviroment.services;
 import home.enviroment.job.SenseMesurementTansferJob;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,6 +41,10 @@ public class SenseMesurementTransferService extends AbstractScheduledService {
 	@Override
 	protected void runOneIteration() throws Exception {
 		LOG.info("About to transfer Sense Mesurement files to remote destination");
+		transferFiles();
+	}
+	
+	private void transferFiles() {
 		if(!files.isEmpty()) {
 			LOG.info(String.format("Transfering: %d files", files.size()));
 			exec.execute(new SenseMesurementTansferJob(new ArrayList<Path>(files), this));
@@ -64,6 +66,11 @@ public class SenseMesurementTransferService extends AbstractScheduledService {
 	@Override
 	protected void shutDown() throws Exception {
 		LOG.info("Stopping SenseMesurementTransferService");
+		if(!files.isEmpty()) {
+			LOG.info(String.format("There are stil: [%d] files to transfer", files.size()));
+			LOG.info(String.format("Transfering: %d files before shutdown", files.size()));
+			transferFiles();
+		}
 		exec.shutdown();
 		super.shutDown();
 	}
