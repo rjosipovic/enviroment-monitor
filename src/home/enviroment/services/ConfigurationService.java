@@ -10,7 +10,7 @@ public class ConfigurationService extends AbstractIdleService {
 	
 	//SenseJob
 	private static final String SENSE_HAT_SCRIPT_PATH = "/home/pi/sense-hat/log-enviroment.py";
-	private static final String TEMP_PATTERN = "^(temperature:)([-+]?([0-9]*\\.[0-9]+|[0-9]+))$";
+	private static final String TEMP_PATTERN = "^(temp_calibrated:)([-+]?([0-9]*\\.[0-9]+|[0-9]+))$";
 	private static final String HUMIDITY_PATTERN = "^(humidity:)([-+]?([0-9]*\\.[0-9]+|[0-9]+))$";
 	private static final String PRESSURE_PATTERN = "^(pressure:)([-+]?([0-9]*\\.[0-9]+|[0-9]+))$";
 	private static final String SENSE_PERSIST_FOLDER = "/tmp/";
