@@ -6,3 +6,9 @@ bin/*
 .settings
 .classpath
 .project
+
+
+.travis.yml
+
+jar/
+persist/
