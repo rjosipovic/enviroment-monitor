@@ -1,5 +1,6 @@
 package home.enviroment.services;
 
+import home.enviroment.config.Prop;
 import home.enviroment.job.RetrieveSenseMesurementJob;
 
 import java.util.concurrent.ExecutorService;
@@ -23,23 +24,24 @@ public class SenseMesurementService extends AbstractScheduledService {
 	}
 	
 	private ExecutorService exec;
-	private ConfigurationService confService;
+	private ConfigurationService configurationService;
 	
 	@Override
 	protected void startUp() throws Exception {
 		LOG.info("Starting SenseMesurementService");
 		super.startUp();
 		exec = Executors.newSingleThreadExecutor();
-		confService = ConfigurationService.getInstance();
+		configurationService = ConfigurationService.getInstance();
 	}
 	
 	@Override
 	protected void runOneIteration() throws Exception {
 		LOG.fine("Executing SenseEnviroment iteration");
-		RetrieveSenseMesurementJob senseJob = new RetrieveSenseMesurementJob(confService.getSenseHatScriptPath(), 
-				confService.getTempPattern(),
-				confService.getHumidityPattern(),
-				confService.getPressurePattern());
+		RetrieveSenseMesurementJob senseJob = new RetrieveSenseMesurementJob(
+				configurationService.getProperty(Prop.SENSE_MESUREMENT_SCRIPT_PATH),
+				configurationService.getProperty(Prop.SENSE_MESUREMENT_TEMP_PATTERN),
+				configurationService.getProperty(Prop.SENSE_MESUREMENT_HUMIDITY_PATTERN),
+				configurationService.getProperty(Prop.SENSE_MESUREMENT_PRESSURE_PATTERN));
 		exec.execute(senseJob);
 	}
 

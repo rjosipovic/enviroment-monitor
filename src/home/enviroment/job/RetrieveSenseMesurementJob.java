@@ -38,35 +38,52 @@ public class RetrieveSenseMesurementJob implements Runnable {
 	
 	@Override
 	public void run() {
+		List<String> lines = readLines();
 		
+		if(lines != null && !lines.isEmpty()) {
+			SenseMesurement mesurement = parseLines(lines);
+			persistenceService.addMesurement(mesurement);
+		}
+	}
+	
+	private List<String> readLines() {
 		ProcessBuilder pb = new ProcessBuilder(commands);
 		Process p = null;
-		try {
 
+		try {
 			LOG.log(Level.FINE, String.format("About to execute command: %s", Arrays.toString(commands)));
 			p = pb.start();
 			int responseCode = p.waitFor();
 			if(responseCode == 0) {
 				LOG.log(Level.FINE, "Command executed successfully");
-				SenseMesurement mesurement = getSenseMesurement(p.getInputStream());
-				persistenceService.addMesurement(mesurement);
+				return readLinesFromStream(p.getInputStream());
 			} else {
-				LOG.log(Level.SEVERE, String.format("Error in executing command, code: %d", responseCode));
+				List<String> error = readLinesFromStream(p.getErrorStream());
+				LOG.log(Level.SEVERE, String.format("Error in executing command, code: %d, details: %s", responseCode, error));
 			}
 			
-		} catch (IOException e) {
-			LOG.log(Level.SEVERE, e.getMessage(), e);
-		} catch (InterruptedException e) {
+		} catch (IOException | InterruptedException e) {
 			LOG.log(Level.SEVERE, e.getMessage(), e);
 		} finally {
 			if(p != null) {
 				p.destroy();
 			}
 		}
+		return null;
 	}
 	
-	private SenseMesurement getSenseMesurement(InputStream in) throws IOException {
-		List<String> lines = readLines(in);
+	private List<String> readLinesFromStream(InputStream in) throws IOException {
+		List<String> lines = new ArrayList<>();
+		
+		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
+		String line;
+		while( (line = reader.readLine()) != null ) {
+			lines.add(line);						
+		}
+		return lines;		
+	}
+	
+	private SenseMesurement parseLines(List<String> lines) {
 		float temperature = 0.0f;
 		float humidity = 0.0f;
 		float pressure = 0.0f;
@@ -83,16 +100,5 @@ public class RetrieveSenseMesurementJob implements Runnable {
 			}
 		}
 		return new SenseMesurement(new Date(), humidity, temperature, pressure);
-	}
-
-	private List<String> readLines(InputStream in) throws IOException {
-		List<String> lines = new ArrayList<>();
-		
-		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-		String line;
-		while( (line = reader.readLine()) != null ) {
-			lines.add(line);						
-		}
-		return lines;		
 	}
 }
