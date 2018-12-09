@@ -9,19 +9,20 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import home.enviroment.sense.SenseMesurement;
 import home.enviroment.services.SenseMesurementTransferService;
 
-public class PersistSenseMesurementJob implements Runnable {
+public class PersistSenseMesurementJob implements Callable<Path> {
 	
 	private static final Logger LOG = Logger.getLogger(PersistSenseMesurementJob.class.getName());
 	
 	private List<SenseMesurement> mesurements;
 	private String storageFolder;
-	private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmm");
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmmssSSS");
 	private SenseMesurementTransferService transferService = null;
 	
 	public PersistSenseMesurementJob(List<SenseMesurement> mesurements, String folder) {
@@ -36,7 +37,7 @@ public class PersistSenseMesurementJob implements Runnable {
 	}
 	
 	@Override
-	public void run() {
+	public Path call() {
 		LOG.log(Level.INFO, String.format("About to persist [%d] mesurements", mesurements.size()));
 		
 		Path file = Paths.get(getFileName());
@@ -48,8 +49,10 @@ public class PersistSenseMesurementJob implements Runnable {
 			}
 			writer.flush();
 			transferService.addFile(file);
-		}catch(IOException ex) {
+			return file;
+		} catch(IOException ex) {
 			LOG.log(Level.SEVERE, "Unable to persist mesurements to a file.", ex);
+			return null;
 		}
 	}
 }
