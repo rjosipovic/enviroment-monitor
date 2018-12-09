@@ -11,12 +11,13 @@ import java.util.logging.Logger;
 public class MonitorWorker implements Runnable {
 	
 	private static final Logger LOG = Logger.getLogger(MonitorWorker.class.getName());
-	private static final String STATUS_MSG = "EnviromentMonitor is RUNNING";
 	
 	private Socket socket;
+	private String statusMsg;
 	
-	public MonitorWorker(Socket socket) {
+	public MonitorWorker(Socket socket, String statusMsg) {
 		this.socket = socket;
+		this.statusMsg = statusMsg;
 	}
 	
 	@Override
@@ -25,8 +26,8 @@ public class MonitorWorker implements Runnable {
 		try{
 			LOG.log(Level.INFO, "About to send status message");
 			PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(socket.getOutputStream())), true);
-			writer.println(STATUS_MSG);
-			LOG.log(Level.INFO, String.format("Status message [%s] sent.", STATUS_MSG));
+			writer.println(statusMsg);
+			LOG.log(Level.INFO, String.format("Status message [%s] sent.", statusMsg));
 			
 		} catch(IOException ex) {
 			LOG.log(Level.SEVERE, ex.getMessage(), ex);

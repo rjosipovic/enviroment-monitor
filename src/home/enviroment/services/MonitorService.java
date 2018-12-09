@@ -1,5 +1,6 @@
 package home.enviroment.services;
 
+import home.enviroment.config.Prop;
 import home.enviroment.monitor.MonitorWorker;
 
 import java.io.IOException;
@@ -16,15 +17,9 @@ import com.google.common.util.concurrent.AbstractExecutionThreadService;
 
 public class MonitorService extends AbstractExecutionThreadService {
 
-	private static final String SERVER_IP = "192.168.0.15";
-	private static final int SERVER_PORT = 1234;
-	private static final int MAX_WORKER_THREADS = 10;
-	private static final int SERVER_SOCKER_SO_TO = 2000;
-	
 	private static final Logger LOG = Logger.getLogger(MonitorService.class.getCanonicalName());
 	
 	private static MonitorService instance;
-	private ExecutorService exec = Executors.newFixedThreadPool(MAX_WORKER_THREADS);
 	
 	public static synchronized MonitorService getInstance() {
 		if(instance == null) {
@@ -33,15 +28,26 @@ public class MonitorService extends AbstractExecutionThreadService {
 		return instance;
 	}
 	
-	private ServerSocket serverSocket;
+	private ConfigurationService configurationService = ConfigurationService.getInstance();
+	private ExecutorService exec = null;
+	private ServerSocket serverSocket = null;
 	
 	public MonitorService() {
 	}
 	
 	@Override
 	protected void startUp() throws Exception {
-		serverSocket = new ServerSocket(SERVER_PORT, 0, InetAddress.getByName(SERVER_IP));
-		serverSocket.setSoTimeout(SERVER_SOCKER_SO_TO);
+		
+		int maxWorkers = Integer.parseInt(configurationService.getProperty(Prop.MONITOR_MAX_WORKERS));
+		int serverPort = Integer.parseInt(configurationService.getProperty(Prop.MONITOR_SERVER_PORT));
+		String serverIP = configurationService.getProperty(Prop.MONITOR_SERVER_IP);
+		int serverSocketTO = Integer.parseInt(configurationService.getProperty(Prop.MONITOR_SERVER_SOCKET_TO));
+		
+		exec = Executors.newFixedThreadPool(maxWorkers);
+		
+		serverSocket = new ServerSocket(serverPort, 0, InetAddress.getByName(serverIP));
+		serverSocket.setSoTimeout(serverSocketTO);
+		
 		LOG.log(Level.INFO, String.format("Server bound [%s]", serverSocket));
 	}
 	
@@ -51,7 +57,7 @@ public class MonitorService extends AbstractExecutionThreadService {
 			try {
 				acceptConnection();
 			}catch (InterruptedIOException e) {
-				//continue
+				//continue if there are no connections in specified timeout 
 			} catch (IOException e) {
 				e.printStackTrace();
 			}			
@@ -61,7 +67,8 @@ public class MonitorService extends AbstractExecutionThreadService {
 	private void acceptConnection() throws IOException {
 		Socket socket = serverSocket.accept();
 		LOG.log(Level.INFO, String.format("Connection: [%s] accepted", socket));
-		exec.execute(new MonitorWorker(socket));
+		String statusMsg = configurationService.getProperty(Prop.MONITOR_STATUS_MSG);
+		exec.execute(new MonitorWorker(socket, statusMsg));
 	}
 	
 	@Override
@@ -77,6 +84,8 @@ public class MonitorService extends AbstractExecutionThreadService {
 				LOG.log(Level.INFO, "Server socket closed");
 			}
 		}
-		exec.shutdown();
+		if(exec != null) {
+			exec.shutdown();
+		}
 	}
 }
