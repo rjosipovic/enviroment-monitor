@@ -1,10 +1,9 @@
 package home.enviroment;
 
-public interface EnviromentMonitorMBean {
+public interface ModuleManagerMBean {
 
 	public String getName();
 	public void start();
 	public void stop();
-	public void reload();
 	public boolean isRunning();
 }
