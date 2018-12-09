@@ -1,19 +1,23 @@
 package home.enviroment.services;
 
-import home.enviroment.job.SenseMesurementTansferJob;
+import home.enviroment.config.Prop;
+import home.enviroment.job.SenseMesurementTransferJob;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import com.google.common.util.concurrent.AbstractScheduledService;
 
-public class SenseMesurementTransferService extends AbstractScheduledService {
+public class SenseMesurementTransferService extends AbstractScheduledService implements FileTransferedListener{
 	
 	private static final Logger LOG = Logger.getLogger(SenseMesurementTransferService.class.getName());
 	
@@ -29,12 +33,14 @@ public class SenseMesurementTransferService extends AbstractScheduledService {
 	}
 	
 	private Set<Path> files = new HashSet<>();
+	private ConfigurationService configurationService = null;
 	private ExecutorService exec = null;
 
 	@Override
 	protected void startUp() throws Exception {
 		LOG.info("Starting SenseMesurementTransferService");
 		exec = Executors.newSingleThreadExecutor();
+		configurationService = ConfigurationService.getInstance();
 		super.startUp();
 	}
 	
@@ -44,23 +50,38 @@ public class SenseMesurementTransferService extends AbstractScheduledService {
 		transferFiles();
 	}
 	
+	private Map<String, String> getRemoteProps() {
+		Map<String, String> remoteProps = new HashMap<>();
+		remoteProps.put(SenseMesurementTransferJob.REMOTE_USER_PROP, configurationService.getProperty(Prop.REMOTE_TRANSFER_USER));
+		remoteProps.put(SenseMesurementTransferJob.REMOTE_PASS_PROP, configurationService.getProperty(Prop.REMOTE_TRANSFER_PASS));
+		remoteProps.put(SenseMesurementTransferJob.REMOTE_HOST_PROP, configurationService.getProperty(Prop.REMOTE_TRANSFER_HOST));
+		remoteProps.put(SenseMesurementTransferJob.REMOTE_PORT_PROP, configurationService.getProperty(Prop.REMOTE_TRANSFER_PORT));
+		remoteProps.put(SenseMesurementTransferJob.CONNECT_TO_PROP, configurationService.getProperty(Prop.REMOTE_TRANSFER_CONNECT_TO));
+		remoteProps.put(SenseMesurementTransferJob.REMOTE_FOLDER_PROP, configurationService.getProperty(Prop.REMOTE_TRANSFER_FOLDER));
+		return remoteProps;
+	}
+	
 	private void transferFiles() {
 		if(!files.isEmpty()) {
 			LOG.info(String.format("Transfering: %d files", files.size()));
-			exec.execute(new SenseMesurementTansferJob(new ArrayList<Path>(files), this));
+			SenseMesurementTransferJob transferJob = new SenseMesurementTransferJob(new ArrayList<Path>(files), getRemoteProps());
+			transferJob.addFileTransferedListener(this);
+			exec.execute(transferJob);
 		} else {
 			LOG.info("There are no files to transfer");
 		}
 	}
 	
-	public void addFile(Path file){
+	public synchronized void addFile(Path file){
 		this.files.add(file);
 	}
 	
-	public void removeFile(Path file) {
+	@Override
+	public void onFileTransfered(String transferedFile) {
+		Path file = Paths.get(transferedFile);
 		if(files.contains(file)) {
 			files.remove(file);
-		}
+		}		
 	}
 	
 	@Override
