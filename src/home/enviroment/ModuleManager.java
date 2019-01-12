@@ -46,9 +46,9 @@ public class ModuleManager implements ModuleManagerMBean {
 		//add services on service stack
 		services.add(ConfigurationService.getInstance());
 		services.add(MonitorService.getInstance());
+		services.add(SenseMesurementTransferService.getInstance());
 		services.add(SensePersistanceService.getInstance());
 		services.add(SenseMesurementService.getInstance());
-		services.add(SenseMesurementTransferService.getInstance());
 	}
 	
 	@Override

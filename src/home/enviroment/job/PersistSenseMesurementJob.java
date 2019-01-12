@@ -6,53 +6,52 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import home.enviroment.sense.SenseMesurement;
-import home.enviroment.services.SenseMesurementTransferService;
+import home.enviroment.services.FileCreatedListener;
 
-public class PersistSenseMesurementJob implements Callable<Path> {
+public class PersistSenseMesurementJob implements Runnable {
 	
 	private static final Logger LOG = Logger.getLogger(PersistSenseMesurementJob.class.getName());
 	
 	private List<SenseMesurement> mesurements;
-	private String storageFolder;
-	private SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmmssSSS");
-	private SenseMesurementTransferService transferService = null;
+	private String fileName;
+	private List<FileCreatedListener> listeners = new LinkedList<FileCreatedListener>();
 	
-	public PersistSenseMesurementJob(List<SenseMesurement> mesurements, String folder) {
+	public PersistSenseMesurementJob(List<SenseMesurement> mesurements, String fileName) {
 		this.mesurements = mesurements;
-		this.storageFolder = folder;
-		transferService = SenseMesurementTransferService.getInstance();
+		this.fileName = fileName;
 	}
 	
-	private String getFileName() {
-		String dateFormated = sdf.format(new Date());
-		return String.format("%ssense-mesurement_%s.txt", storageFolder, dateFormated);		
+	public void addFileCreatedListener(FileCreatedListener listener) {
+		this.listeners.add(listener);
+	}
+	
+	private void notifListeners(Path file) {
+		for(FileCreatedListener listener : listeners) {
+			listener.onFileCreated(file);			
+		}		
 	}
 	
 	@Override
-	public Path call() {
-		LOG.log(Level.INFO, String.format("About to persist [%d] mesurements", mesurements.size()));
+	public void run() {
 		
-		Path file = Paths.get(getFileName());
+		Path file = Paths.get(fileName);
+		LOG.log(Level.INFO, String.format("About to persist [%d] mesurements to %s", mesurements.size(), fileName));
+
 		try(BufferedWriter writer = Files.newBufferedWriter(file, Charset.forName("UTF-8"))) {
 			for(SenseMesurement mesurement : mesurements) {
-				writer.write(mesurement.toString());
-				writer.write("\n");
-				
+				writer.write(mesurement.toPersistString());
+				writer.write("\n");				
 			}
 			writer.flush();
-			transferService.addFile(file);
-			return file;
+			notifListeners(file);
 		} catch(IOException ex) {
 			LOG.log(Level.SEVERE, "Unable to persist mesurements to a file.", ex);
-			return null;
 		}
 	}
 }

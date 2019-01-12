@@ -2,20 +2,20 @@ package home.enviroment.modulemanager.test.services;
 
 import static org.junit.Assert.*;
 
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
+import home.enviroment.config.Prop;
 import home.enviroment.modulemanager.test.utils.MesurementDataProvider;
 import home.enviroment.modulemanager.test.utils.ServiceManager;
 import home.enviroment.sense.SenseMesurement;
 import home.enviroment.services.ConfigurationService;
-import home.enviroment.services.FileCreatedListener;
 import home.enviroment.services.SensePersistanceService;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -39,30 +39,20 @@ public class SensePersistanceServiceTest {
 	}
 
 	@Test
-	public void test() throws InterruptedException {
+	public void test() throws InterruptedException, IOException {
 		List<SenseMesurement> mesurements = mesurementsDataProvider.getMesurements();
 		for(SenseMesurement mesurement : mesurements) {
 			persistanceService.addMesurement(mesurement);
 		}
-		final Set<String> finishedFiles = new HashSet<>();
-		persistanceService.addFileFinishedListener(new FileCreatedListener() {
-			
-			@Override
-			public void onFileCreated(String file) {
-				System.out.println(file);
-				finishedFiles.add(file);
-			}
-		});
-		for(String file : finishedFiles) {
-			assertTrue(Files.exists(Paths.get(file)));
-		}
-	}
-
-	@AfterClass
-	public static void tearDownAfterClass() throws Exception {
 		ServiceManager.stopService(persistanceService);
 		ServiceManager.stopService(configService);
-		assertFalse(configService.isRunning());
-		assertFalse(persistanceService.isRunning());		
+		DirectoryStream<Path> directoryStream = Files.newDirectoryStream(Paths.get(configService.getProperty(Prop.SENSE_MESUREMENT_PERSIST_FOLDER)), "sense-mesurement*");
+		
+		Path persistedFile = directoryStream.iterator().next();
+		List<String> persistedLines = Files.readAllLines(persistedFile);
+		
+		Path rawFile = Paths.get("persist/input/raw.txt");
+		List<String> rowLines = Files.readAllLines(rawFile);
+		assertTrue(persistedLines.containsAll(rowLines));
 	}
 }

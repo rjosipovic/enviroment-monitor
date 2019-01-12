@@ -25,8 +25,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.google.common.util.concurrent.Service;
-
 public class SenseMesurementTransferJobTest {
 	
 	private static ConfigurationService configurationService;

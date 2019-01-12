@@ -31,7 +31,6 @@ public class SenseMesurementServiceTest {
 
 	@Test
 	public void test() {
-		System.out.println("!placeholder");
 	}
 
 	@AfterClass

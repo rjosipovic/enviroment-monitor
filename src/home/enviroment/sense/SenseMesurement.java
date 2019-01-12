@@ -10,21 +10,36 @@ public class SenseMesurement implements Serializable {
 
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 	
-	private Date mesureTime;
-	private float humidity;
-	private float temperature;
-	private float pressure;
+	private Date mesurementTime;
+	private float value;
+	private MesurementType type;
 	
-	public SenseMesurement(Date date, float humidity, float temperature, float pressure) {
-		this.mesureTime = date;
-		this.pressure = pressure;
-		this.humidity = humidity;
-		this.temperature = temperature;
+	public SenseMesurement(Date mesurementTime, float value, MesurementType type) {
+		this.mesurementTime = mesurementTime;
+		this.value = value;
+		this.type = type;
+	}
+	
+	public Date getMesureTime() {
+		return mesurementTime;
+	}
+	
+	public float getValue() {
+		return value;
+	}
+	
+	public MesurementType getType() {
+		return type;
+	}
+	
+	public String toPersistString() {
+		String formatedMesureTime = sdf.format(mesurementTime);
+		return String.format("%s|%s|%.2f", formatedMesureTime, type.getAbbreviation(), value);
 	}
 	
 	@Override
 	public String toString() {
-		String formatedMesureTime = sdf.format(mesureTime);
-		return String.format("MesureTime: %s Temperature: %.2f Humidity: %.2f Pressure: %.2f",formatedMesureTime, temperature, humidity, pressure);
+		String formatedMesureTime = sdf.format(mesurementTime);
+		return String.format("Type: %s MesureTime: %s Value: %.2f", type.name(), formatedMesureTime, value);
 	}
 }

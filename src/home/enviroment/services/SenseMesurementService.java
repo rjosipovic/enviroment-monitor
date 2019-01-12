@@ -1,8 +1,9 @@
 package home.enviroment.services;
 
-import home.enviroment.config.Prop;
 import home.enviroment.job.RetrieveSenseMesurementJob;
+import home.enviroment.sense.SenseMesurement;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -10,7 +11,7 @@ import java.util.logging.Logger;
 
 import com.google.common.util.concurrent.AbstractScheduledService;
 
-public class SenseMesurementService extends AbstractScheduledService {
+public class SenseMesurementService extends AbstractScheduledService implements MesureTakenListener {
 	
 	private static final Logger LOG = Logger.getLogger(SenseMesurementService.class.getName());
 	
@@ -24,30 +25,33 @@ public class SenseMesurementService extends AbstractScheduledService {
 	}
 	
 	private ExecutorService exec;
-	private ConfigurationService configurationService;
+	private SensePersistanceService persistanceService;
 	
 	@Override
 	protected void startUp() throws Exception {
 		LOG.info("Starting SenseMesurementService");
 		super.startUp();
 		exec = Executors.newSingleThreadExecutor();
-		configurationService = ConfigurationService.getInstance();
+		persistanceService = SensePersistanceService.getInstance();
 	}
 	
 	@Override
 	protected void runOneIteration() throws Exception {
-		LOG.fine("Executing SenseEnviroment iteration");
-		RetrieveSenseMesurementJob senseJob = new RetrieveSenseMesurementJob(
-				configurationService.getProperty(Prop.SENSE_MESUREMENT_SCRIPT_PATH),
-				configurationService.getProperty(Prop.SENSE_MESUREMENT_TEMP_PATTERN),
-				configurationService.getProperty(Prop.SENSE_MESUREMENT_HUMIDITY_PATTERN),
-				configurationService.getProperty(Prop.SENSE_MESUREMENT_PRESSURE_PATTERN));
-		exec.execute(senseJob);
+		List<RetrieveSenseMesurementJob> jobs = SenseMesurementUtil.getSenseMesurementJobs();
+		for(RetrieveSenseMesurementJob job : jobs) {
+			job.addMesureTakenListener(this);
+			exec.execute(job);
+		}
 	}
-
+	
 	@Override
 	protected Scheduler scheduler() {
-		return AbstractScheduledService.Scheduler.newFixedDelaySchedule(0, 1, TimeUnit.SECONDS);
+		return AbstractScheduledService.Scheduler.newFixedDelaySchedule(0, 5, TimeUnit.SECONDS);
+	}
+	
+	@Override
+	public void onMesureTaken(SenseMesurement mesurement) {
+		persistanceService.addMesurement(mesurement);		
 	}
 	
 	@Override

@@ -7,7 +7,9 @@ public enum Prop {
 	ENVIROMENT_SERVICE_APPLICATION_NAME("enviroment-service-application-name", "EnviromentMonitor"),
 	ENVIROMENT_SERVICE_APPLICATION_STATUS_TIMEOUT("enviroment-service-application-status-timeout", "5"),
 	
-	SENSE_MESUREMENT_SCRIPT_PATH("sense_mesurement_script_path", "/home/pi/sense-hat/log-enviroment.py"),
+	SENSE_MESUREMENT_TEMPERATURE_SCRIPT("sense-mesurement-temperature-script", "/home/sense/sense-hat/scripts/temperature.sh"),
+	SENSE_MESUREMENT_PRESSURE_SCRIPT("sense-mesurement-pressure-script", "/home/sense/sense-hat/scripts/pressure.sh"),
+	SENSE_MESUREMENT_HUMIDITY_SCRIPT("sense-mesurement-humidity-script", "/home/sense/sense-hat/scripts/humidity.sh"),
 	SENSE_MESUREMENT_TEMP_PATTERN("sense_mesurement_temp_pattern", "^(temp_calibrated:)([-+]?([0-9]*\\.[0-9]+|[0-9]+))$"),
 	SENSE_MESUREMENT_PRESSURE_PATTERN("sense_mesurement_pressure_pattern", "^(pressure:)([-+]?([0-9]*\\.[0-9]+|[0-9]+))$"),
 	SENSE_MESUREMENT_HUMIDITY_PATTERN("sense_mesurement_humidity_pattern", "^(humidity:)([-+]?([0-9]*\\.[0-9]+|[0-9]+))$"),

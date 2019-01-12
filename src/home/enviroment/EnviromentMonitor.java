@@ -84,8 +84,6 @@ public class EnviromentMonitor {
 	}
 	
 	private static void startSequence() {
-		ModuleManagerMBean enviromentMonitorMBean = getEnviromentMonitorMBean();
-		if(enviromentMonitorMBean == null) {
 			ModuleManager moduleManager = null;
 			try {
 				moduleManager = ModuleManager.getInstance();
@@ -96,14 +94,6 @@ public class EnviromentMonitor {
 			}
 			moduleManager.start();
 			applicationLoop(moduleManager);
-		} else {
-			if(enviromentMonitorMBean.isRunning()) {
-				LOG.log(Level.SEVERE, "EnviromentMonitor already running");
-				return;
-			} else {
-				enviromentMonitorMBean.start();
-			}				
-		}
 	}
 	
 	private static void applicationLoop(ModuleManager moduleManager) {
@@ -145,7 +135,7 @@ public class EnviromentMonitor {
 			JMXServiceURL url = new JMXServiceURL(Prop.JMX_SERVICE_URL.getDefaultvalue());
 			JMXConnector connector = JMXConnectorFactory.connect(url, null);
 			MBeanServerConnection connection = connector.getMBeanServerConnection();
-			ObjectName name = new ObjectName(EnviromentMonitor.class.getPackage().getName() + ":type=EnviromentMonitor");
+			ObjectName name = new ObjectName(EnviromentMonitor.class.getPackage().getName() + ":type=ModuleManager");
 			enviromentMonitor = JMX.newMBeanProxy(connection, name, ModuleManagerMBean.class, true);			
 		} catch(Exception e) {
 			LOG.log(Level.INFO, "Unable to get ModuleManagerMBean");

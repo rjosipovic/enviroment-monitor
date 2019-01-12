@@ -138,7 +138,7 @@ public class SenseMesurementTransferJob implements Runnable {
 		if(isChannelConnected()) {
 			channel.disconnect();
 		} else {
-			LOG.log(Level.WARNING, "Channell already disconnected");
+			LOG.log(Level.WARNING, "Channel already disconnected");
 		}
 	}
 	

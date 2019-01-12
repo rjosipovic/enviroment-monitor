@@ -1,52 +1,61 @@
 package home.enviroment.job;
 
+import home.enviroment.sense.MesurementType;
 import home.enviroment.sense.SenseMesurement;
-import home.enviroment.services.SensePersistanceService;
+import home.enviroment.services.MesureTakenListener;
+import home.enviroment.services.SenseMesurementUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class RetrieveSenseMesurementJob implements Runnable {
 	
 	private static final Logger LOG = Logger.getLogger(RetrieveSenseMesurementJob.class.getCanonicalName());
 	
 	private String[] commands;
+	private MesurementType type;
 	
-	private Pattern temperaturePattern;
-	private Pattern humidityPattern;
-	private Pattern pressurePattern;
+	private List<MesureTakenListener> listeners = new LinkedList<MesureTakenListener>();
 	
-	private SensePersistanceService persistenceService;
+	public RetrieveSenseMesurementJob(MesurementType type) {
+		String script = SenseMesurementUtil.getMesurementScriptNameFromType(type);
+		commands = new String[]{"/bin/bash", script};
+		this.type = type;
+	}
 	
-	public RetrieveSenseMesurementJob(String senseHatScript, String tempPattern, String humidityPattern, String pressurePattern) {
-		commands = new String[]{"python", senseHatScript};
-		this.temperaturePattern = Pattern.compile(tempPattern);
-		this.humidityPattern = Pattern.compile(humidityPattern);
-		this.pressurePattern = Pattern.compile(pressurePattern);
-		persistenceService = SensePersistanceService.getInstance();
+	public void addMesureTakenListener(MesureTakenListener listener) {
+		listeners.add(listener);
+	}
+	
+	private void notifyListeners(SenseMesurement mesurement) {
+		for(MesureTakenListener listener : listeners) {
+			listener.onMesureTaken(mesurement);
+		}
 	}
 	
 	@Override
 	public void run() {
-		List<String> lines = readLines();
+		String response = readLine();
 		
-		if(lines != null && !lines.isEmpty()) {
-			SenseMesurement mesurement = parseLines(lines);
-			persistenceService.addMesurement(mesurement);
+		if(response != null) {
+			SenseMesurement mesurement = getMesurementFromString(response);
+			if(mesurement != null) {
+				notifyListeners(mesurement);
+			} else {
+				LOG.log(Level.WARNING, "Mesurement not defined");
+			}
 		}
 	}
 	
-	private List<String> readLines() {
+	private String readLine() {
 		ProcessBuilder pb = new ProcessBuilder(commands);
 		Process p = null;
 
@@ -56,12 +65,11 @@ public class RetrieveSenseMesurementJob implements Runnable {
 			int responseCode = p.waitFor();
 			if(responseCode == 0) {
 				LOG.log(Level.FINE, "Command executed successfully");
-				return readLinesFromStream(p.getInputStream());
+				return readLineFromStream(p.getInputStream());
 			} else {
-				List<String> error = readLinesFromStream(p.getErrorStream());
+				String error = readLineFromStream(p.getErrorStream());
 				LOG.log(Level.SEVERE, String.format("Error in executing command, code: %d, details: %s", responseCode, error));
 			}
-			
 		} catch (IOException | InterruptedException e) {
 			LOG.log(Level.SEVERE, e.getMessage(), e);
 		} finally {
@@ -72,33 +80,22 @@ public class RetrieveSenseMesurementJob implements Runnable {
 		return null;
 	}
 	
-	private List<String> readLinesFromStream(InputStream in) throws IOException {
-		List<String> lines = new ArrayList<>();
+	private String readLineFromStream(InputStream in) throws IOException {
 		
 		BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-		String line;
-		while( (line = reader.readLine()) != null ) {
-			lines.add(line);						
-		}
-		return lines;		
+		return reader.readLine();
 	}
 	
-	private SenseMesurement parseLines(List<String> lines) {
-		float temperature = 0.0f;
-		float humidity = 0.0f;
-		float pressure = 0.0f;
-		for(String line : lines) {
-			Matcher temperatureMatcher = temperaturePattern.matcher(line);
-			Matcher humidityMatcher = humidityPattern.matcher(line);
-			Matcher pressureMatcher = pressurePattern.matcher(line);
-			if(temperatureMatcher.matches()) {
-				temperature = Float.parseFloat(temperatureMatcher.group(2));
-			} else if(humidityMatcher.matches()) {
-				humidity = Float.parseFloat(humidityMatcher.group(2));
-			} else if(pressureMatcher.matches()) {
-				pressure = Float.parseFloat(pressureMatcher.group(2));
-			}
+	private SenseMesurement getMesurementFromString(String line) {
+		try {
+			float value = Float.parseFloat(line);
+			SenseMesurement mesurement = new SenseMesurement(new Date(), value, type);
+			return mesurement;
+		}catch(NumberFormatException ex) {
+			LOG.log(Level.WARNING, String.format("Unable to parse to float value: %s of type [%s]", line, type.name()));
+		} catch (Exception e) {
+			LOG.log(Level.SEVERE, e.getMessage(), e);
 		}
-		return new SenseMesurement(new Date(), humidity, temperature, pressure);
+		return null;
 	}
 }

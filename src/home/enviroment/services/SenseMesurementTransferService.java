@@ -47,7 +47,7 @@ public class SenseMesurementTransferService extends AbstractScheduledService imp
 	@Override
 	protected void runOneIteration() throws Exception {
 		LOG.info("About to transfer Sense Mesurement files to remote destination");
-		transferFiles();
+		executeFileTransfer();
 	}
 	
 	private Map<String, String> getRemoteProps() {
@@ -61,7 +61,7 @@ public class SenseMesurementTransferService extends AbstractScheduledService imp
 		return remoteProps;
 	}
 	
-	private void transferFiles() {
+	private void executeFileTransfer() {
 		if(!files.isEmpty()) {
 			LOG.info(String.format("Transfering: %d files", files.size()));
 			SenseMesurementTransferJob transferJob = new SenseMesurementTransferJob(new ArrayList<Path>(files), getRemoteProps());
@@ -72,7 +72,7 @@ public class SenseMesurementTransferService extends AbstractScheduledService imp
 		}
 	}
 	
-	public synchronized void addFile(Path file){
+	public synchronized void transferFile(Path file){
 		this.files.add(file);
 	}
 	
@@ -91,7 +91,7 @@ public class SenseMesurementTransferService extends AbstractScheduledService imp
 		if(!files.isEmpty()) {
 			LOG.info(String.format("There are stil: [%d] files to transfer", files.size()));
 			LOG.info(String.format("Transfering: %d files before shutdown", files.size()));
-			transferFiles();
+			executeFileTransfer();
 		}
 		exec.shutdown();
 		super.shutDown();

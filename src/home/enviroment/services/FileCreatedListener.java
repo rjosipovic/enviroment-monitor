@@ -1,7 +1,9 @@
 package home.enviroment.services;
 
+import java.nio.file.Path;
+
 
 public interface FileCreatedListener {
 	
-	public void onFileCreated(String file);
+	public void onFileCreated(Path file);
 }

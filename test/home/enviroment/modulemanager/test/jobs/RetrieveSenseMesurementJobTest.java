@@ -2,23 +2,18 @@ package home.enviroment.modulemanager.test.jobs;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import home.enviroment.config.Prop;
 import home.enviroment.job.RetrieveSenseMesurementJob;
 import home.enviroment.modulemanager.test.utils.ServiceManager;
+import home.enviroment.sense.MesurementType;
+import home.enviroment.sense.SenseMesurement;
 import home.enviroment.services.ConfigurationService;
-import home.enviroment.services.FileCreatedListener;
-import home.enviroment.services.SensePersistanceService;
+import home.enviroment.services.MesureTakenListener;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -33,93 +28,113 @@ import org.powermock.modules.junit4.PowerMockRunner;
 public class RetrieveSenseMesurementJobTest {
 
 	private static ConfigurationService configurationService;
-	private static SensePersistanceService persistanceService;
 	private static Map<String, String> rowValues = new LinkedHashMap<String, String>();
-	private static Pattern pattern = Pattern
-			.compile("^(MesureTime: (\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})) (Temperature: (\\d{2}.\\d{2})) (Humidity: (\\d{2}.\\d{2})) (Pressure: (\\d{3,4}.\\d{2}))$");
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		rowValues.put("temperature", "34.08");
-		rowValues.put("CPU temp", "54.8");
-		rowValues.put("temp_calibrated", "30.30");
 		rowValues.put("humidity", "33.94");
 		rowValues.put("pressure", "1009.64");
 
-		System.setProperty("logging.configuration",
-				"conf/test/logging.properties");
-		System.setProperty("application.configuration",
-				"conf/test/enviroment-monitor.properties");
+		System.setProperty("logging.configuration", "conf/test/logging.properties");
+		System.setProperty("application.configuration", "conf/test/enviroment-monitor.properties");
 		configurationService = ConfigurationService.getInstance();
-		persistanceService = SensePersistanceService.getInstance();
 		ServiceManager.startService(configurationService);
-		ServiceManager.startService(persistanceService);
 		assertTrue(configurationService.isRunning());
-		assertTrue(persistanceService.isRunning());
 	}
 
 	@Test
-	public void test() throws Exception {
+	public void testTemperature() throws Exception {
 
-		persistanceService.addFileFinishedListener(new FileCreatedListener() {
-
+		final MesurementType type = MesurementType.TEMPERATURE;
+		RetrieveSenseMesurementJob job = new RetrieveSenseMesurementJob(type);
+		job.addMesureTakenListener(new MesureTakenListener() {
+			
 			@Override
-			public void onFileCreated(String file) {
-				Path finishedFile = Paths.get(file);
-				assertTrue(Files.exists(finishedFile));
-				try {
-					assertTrue(dataMatch(Files.readAllLines(finishedFile)));
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			public void onMesureTaken(SenseMesurement mesurement) {
+				assertTrue(dataMatch(mesurement, type));
 			}
 		});
-
-		RetrieveSenseMesurementJob job = new RetrieveSenseMesurementJob(
-				configurationService
-						.getProperty(Prop.SENSE_MESUREMENT_SCRIPT_PATH),
-				configurationService
-						.getProperty(Prop.SENSE_MESUREMENT_TEMP_PATTERN),
-				configurationService
-						.getProperty(Prop.SENSE_MESUREMENT_HUMIDITY_PATTERN),
-				configurationService
-						.getProperty(Prop.SENSE_MESUREMENT_PRESSURE_PATTERN));
+		
 		RetrieveSenseMesurementJob mock = PowerMockito.spy(job);
-		PowerMockito.doReturn(getLines()).when(mock, "readLines");
+		PowerMockito.doReturn(getLineForMesurementType(type)).when(mock, "readLine");
 		Thread t = new Thread(mock);
 		t.start();
 		t.join();
-
 	}
 
-	private boolean dataMatch(List<String> lines) {
-		if (lines != null && lines.size() == 1) {
-			String line = lines.get(0);
-			Matcher m = pattern.matcher(line);
-			if (m.find()) {
-				String temperature = m.group(4);
-				String humidity = m.group(6);
-				String pressure = m.group(8);
-				return temperature.equals(rowValues.get("temp_calibrated"))
-						&& humidity.equals(rowValues.get("humidity"))
-						&& pressure.equals(rowValues.get("pressure"));
+	@Test
+	public void testPressure() throws Exception {
+
+		final MesurementType type = MesurementType.PRESSURE;
+		RetrieveSenseMesurementJob job = new RetrieveSenseMesurementJob(type);
+		job.addMesureTakenListener(new MesureTakenListener() {
+			
+			@Override
+			public void onMesureTaken(SenseMesurement mesurement) {
+				assertTrue(dataMatch(mesurement, type));
 			}
-		}
-		return false;
+		});
+		
+		RetrieveSenseMesurementJob mock = PowerMockito.spy(job);
+		PowerMockito.doReturn(getLineForMesurementType(type)).when(mock, "readLine");
+		Thread t = new Thread(mock);
+		t.start();
+		t.join();
 	}
 
-	private List<String> getLines() {
-		List<String> lines = new ArrayList<String>();
-		for (String key : rowValues.keySet()) {
-			lines.add(String.format("%s:%s", key, rowValues.get(key)));
+	@Test
+	public void testHumidity() throws Exception {
+
+		final MesurementType type = MesurementType.HUMIDITY;
+		RetrieveSenseMesurementJob job = new RetrieveSenseMesurementJob(type);
+		job.addMesureTakenListener(new MesureTakenListener() {
+			
+			@Override
+			public void onMesureTaken(SenseMesurement mesurement) {
+				assertTrue(dataMatch(mesurement, type));
+			}
+		});
+		
+		RetrieveSenseMesurementJob mock = PowerMockito.spy(job);
+		PowerMockito.doReturn(getLineForMesurementType(type)).when(mock, "readLine");
+		Thread t = new Thread(mock);
+		t.start();
+		t.join();
+	}
+
+	private boolean dataMatch(SenseMesurement mesurement, MesurementType type) {
+		float rowValueTemp = Float.parseFloat(rowValues.get("temperature"));
+		float rowValuePressure = Float.parseFloat(rowValues.get("pressure"));
+		float rowValueHumidity = Float.parseFloat(rowValues.get("humidity"));
+
+		switch (type) {
+		case TEMPERATURE:
+			return mesurement.getValue() == rowValueTemp;
+		case PRESSURE:
+			return mesurement.getValue() == rowValuePressure;
+		case HUMIDITY:
+			return mesurement.getValue() == rowValueHumidity;
+		default:
+			return false;
 		}
-		return lines;
+	}
+
+	private String getLineForMesurementType(MesurementType type) {
+		switch (type) {
+		case TEMPERATURE:
+			return rowValues.get("temperature");
+		case PRESSURE:
+			return rowValues.get("pressure");
+		case HUMIDITY:
+			return rowValues.get("humidity");
+		default:
+			return null;
+		}
 	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 		ServiceManager.stopService(configurationService);
-		ServiceManager.stopService(persistanceService);
 	}
 }

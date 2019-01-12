@@ -1,5 +1,6 @@
 package home.enviroment.modulemanager.test.utils;
 
+import home.enviroment.sense.MesurementType;
 import home.enviroment.sense.SenseMesurement;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class MesurementDataProvider {
 		return instance;
 	}
 
-	private final String REG_EXP = "^(MesureTime: (\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})) (Temperature: (\\d{2}.\\d{2})) (Humidity: (\\d{2}.\\d{2})) (Pressure: (\\d{3,4}.\\d{2}))$";
+	private final String REG_EXP = "^(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})\\|([A-Z]+)\\|([0-9]+.[0-9]+)$";
 	private final Pattern pattern = Pattern.compile(REG_EXP);
 	private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	private final String INPUT_FILE = "persist/input/raw.txt";
@@ -40,7 +41,9 @@ public class MesurementDataProvider {
 			for(String line : inputLines) {
 				Matcher m = pattern.matcher(line);
 				if(m.find()) {
-					String dateTime = m.group(2);
+					String dateTime = m.group(1);
+					String t = m.group(2);
+					String v = m.group(3);
 					Date dt = null;
 					try{
 						dt = sdf.parse(dateTime);
@@ -48,13 +51,10 @@ public class MesurementDataProvider {
 						ex.printStackTrace();
 						continue;
 					}
-					String temperature = m.group(4);
-					float t = Float.parseFloat(temperature.replace(",", "."));
-					String humidity = m.group(6);
-					float h = Float.parseFloat(humidity.replace(",", "."));
-					String pressure = m.group(8);
-					float p = Float.parseFloat(pressure.replace(",", "."));
-					SenseMesurement mesurement = new SenseMesurement(dt, h, t, p);
+					MesurementType type = MesurementType.fromAbbreviation(m.group(2));
+					float value = Float.parseFloat(m.group(3));
+					SenseMesurement mesurement = new SenseMesurement(dt, value, type);
+					System.out.println(mesurement.toPersistString());
 					mesurements.add(mesurement);
 				}
 			}
