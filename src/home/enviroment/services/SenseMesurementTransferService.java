@@ -11,6 +11,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -89,12 +90,24 @@ public class SenseMesurementTransferService extends AbstractScheduledService imp
 		LOG.info("Stopping SenseMesurementTransferService");
 		//TODO not working as expected
 		if(!files.isEmpty()) {
-			LOG.info(String.format("There are stil: [%d] files to transfer", files.size()));
+			LOG.info(String.format("There are still: [%d] files to transfer", files.size()));
 			LOG.info(String.format("Transfering: %d files before shutdown", files.size()));
 			executeFileTransfer();
 		}
+		while(!files.isEmpty()) {
+			LOG.info(String.format("Waiting for files to be transfered. There are still: [%d] files to transfer", files.size()));
+			sleep(2);
+		}
 		exec.shutdown();
 		super.shutDown();
+	}
+	
+	private void sleep(int seconds) {
+		try {
+			Thread.sleep(1000 * seconds);
+		} catch (InterruptedException e) {
+			LOG.log(Level.SEVERE, e.getMessage(), e);
+		}		
 	}
 
 	@Override
