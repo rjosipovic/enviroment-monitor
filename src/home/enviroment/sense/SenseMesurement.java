@@ -8,7 +8,7 @@ public class SenseMesurement implements Serializable {
 
 	private static final long serialVersionUID = 20180901L;
 
-	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	private Date mesurementTime;
 	private float value;
