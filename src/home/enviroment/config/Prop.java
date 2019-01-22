@@ -6,6 +6,7 @@ public enum Prop {
 	ENVIROMENT_SERVICE_LOG_PROPS_FILE("enviroment-service-log-props-file", "/etc/enviroment-monitor/logging.properties"),
 	ENVIROMENT_SERVICE_APPLICATION_NAME("enviroment-service-application-name", "EnviromentMonitor"),
 	ENVIROMENT_SERVICE_APPLICATION_STATUS_TIMEOUT("enviroment-service-application-status-timeout", "5"),
+	ENVIROMENT_SERVICE_APPLICATION_SHUTDOWN_TIMEOUT("enviroment-service-application-shutdown-timeout", "1"),
 	
 	SENSE_MESUREMENT_TEMPERATURE_SCRIPT("sense-mesurement-temperature-script", "/home/sense/sense-hat/scripts/temperature.sh"),
 	SENSE_MESUREMENT_PRESSURE_SCRIPT("sense-mesurement-pressure-script", "/home/sense/sense-hat/scripts/pressure.sh"),

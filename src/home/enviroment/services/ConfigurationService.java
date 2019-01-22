@@ -81,6 +81,7 @@ public class ConfigurationService extends AbstractIdleService implements EventLi
 	protected void shutDown() throws Exception {
 		LOG.info("About to stop ConfigurationService");
 		shutdownTrigger();
+		LOG.info("ConfigurationService stopped");
 	}
 
 	@Override

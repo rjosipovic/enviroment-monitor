@@ -100,6 +100,7 @@ public class SenseMesurementTransferService extends AbstractScheduledService imp
 		}
 		exec.shutdown();
 		super.shutDown();
+		LOG.info("SenseMesurementTransferService stopped");
 	}
 	
 	private void sleep(int seconds) {

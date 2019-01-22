@@ -119,7 +119,7 @@ public class ModuleManager implements ModuleManagerMBean {
 		return res;
 	}
 
-	private boolean allServicesTerminated() {
+	public boolean allServicesTerminated() {
 		boolean res = true;
 		for(Service service : services) {
 			if(!service.isRunning()) {

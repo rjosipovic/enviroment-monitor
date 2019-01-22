@@ -73,7 +73,7 @@ public class MonitorService extends AbstractExecutionThreadService {
 	
 	@Override
 	protected void shutDown() throws Exception {
-		LOG.log(Level.INFO, "Closing server socket");
+		LOG.log(Level.INFO, "Stopping MonitorService");
 		if(serverSocket != null) {
 			try {
 				serverSocket.close();
@@ -87,5 +87,6 @@ public class MonitorService extends AbstractExecutionThreadService {
 		if(exec != null) {
 			exec.shutdown();
 		}
+		LOG.log(Level.INFO, "MonitorService stopped");
 	}
 }

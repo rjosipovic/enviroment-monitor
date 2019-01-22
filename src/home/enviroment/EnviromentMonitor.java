@@ -99,13 +99,29 @@ public class EnviromentMonitor {
 	private static void applicationLoop(ModuleManager moduleManager) {
 		LOG.log(Level.INFO, "Entering application loop");
 		while(moduleManager.isRunning()) {
+			sleep(Integer.parseInt(Prop.ENVIROMENT_SERVICE_APPLICATION_STATUS_TIMEOUT.getDefaultvalue()));
 			try {
 				TimeUnit.SECONDS.sleep(Long.parseLong(Prop.ENVIROMENT_SERVICE_APPLICATION_STATUS_TIMEOUT.getDefaultvalue()));
 			} catch (InterruptedException e) {
 				LOG.log(Level.SEVERE, "EnviromentMonitor interrupted");
 			}
 		}
+
+		while(!moduleManager.allServicesTerminated()) {
+			LOG.log(Level.INFO, "Waiting for all services to terminate");
+			sleep(Integer.parseInt(Prop.ENVIROMENT_SERVICE_APPLICATION_SHUTDOWN_TIMEOUT.getDefaultvalue()));
+		}
+
 		LOG.log(Level.INFO, "Exiting application loop");
+	}
+	
+	private static void sleep(int seconds) {
+		try {
+			TimeUnit.SECONDS.sleep(seconds);
+		} catch (InterruptedException e) {
+			LOG.log(Level.SEVERE, e.getMessage(), e);
+		}
+		
 	}
 	
 	private static void stopSequence() {

@@ -59,5 +59,6 @@ public class SenseMesurementService extends AbstractScheduledService implements 
 		LOG.info("Stopping SenseMesurementService");
 		exec.shutdown();
 		super.shutDown();
+		LOG.info("SenseMesurementService stopped");
 	}
 }

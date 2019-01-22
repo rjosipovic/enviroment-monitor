@@ -124,8 +124,8 @@ public class SensePersistanceService extends AbstractScheduledService implements
 		} else {
 			LOG.log(Level.WARNING, "Persistance jobs NOT finished");
 		}
-		
 		super.shutDown();
+		LOG.info("SensePersistanceService stopped");
 	}
 	
 	private void addMesuremntToQueue(LinkedBlockingQueue<SenseMesurement> queue, SenseMesurement mesurement) {
